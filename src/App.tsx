@@ -1,4 +1,5 @@
 import { ConfigProvider } from 'antd';
+import az_AZ from 'antd/locale/az_AZ';
 import ru_RU from 'antd/locale/ru_RU';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
@@ -26,6 +27,8 @@ import { AlertsPage } from './pages/Alerts/AlertsPage';
 import { SyncPage } from './pages/Sync/SyncPage';
 import { SettingsPage } from './pages/Settings/SettingsPage';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
+import { useTranslation } from 'react-i18next';
+import { useEffect } from 'react';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -38,8 +41,16 @@ const queryClient = new QueryClient({
 
 function ThemedApp() {
   const { theme } = useAppState();
+  const { i18n } = useTranslation();
+  const language = i18n.language === 'az' ? 'az' : 'ru';
+
+  useEffect(() => {
+    dayjs.locale(language);
+    document.documentElement.lang = language;
+  }, [language]);
+
   return (
-    <ConfigProvider locale={ru_RU} theme={getAntdTheme(theme)}>
+    <ConfigProvider locale={language === 'az' ? az_AZ : ru_RU} theme={getAntdTheme(theme)}>
       <BrowserRouter>
         <AppErrorBoundary>
           <Routes>

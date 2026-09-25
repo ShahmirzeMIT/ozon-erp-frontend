@@ -1,11 +1,13 @@
-import { Card, Switch, Space, Descriptions, Button, Popconfirm, message, Alert, Input, Tooltip } from 'antd';
+import { Card, Switch, Space, Descriptions, Button, Popconfirm, message, Alert, Input, Tooltip, Select } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { useAppState } from '../../hooks/useAppState';
 import { DemoPreferencesStore } from '../../services/DemoPreferencesStore';
 import { DemoTag } from '../../components/DemoTag';
+import { useTranslation } from 'react-i18next';
 
 export function SettingsPage() {
   const { theme, toggleTheme, storeName } = useAppState();
+  const { t, i18n } = useTranslation();
 
   const resetDemoData = () => {
     DemoPreferencesStore.resetAll();
@@ -23,10 +25,25 @@ export function SettingsPage() {
         description="Ozon Client-Id / Api-Key, планирование cron, отправка email и интеграция AI (Gemini) будут выполняться только на backend. Секретные ключи на этой странице не запрашиваются и не сохраняются."
       />
 
-      <Card size="small" className="section-card" title="Внешний вид">
+      <Card size="small" className="section-card" title={t('appearance')}>
         <Space>
-          <span>Тёмная тема</span>
+          <span>{t('darkTheme')}</span>
           <Switch checked={theme === 'dark'} onChange={toggleTheme} />
+        </Space>
+        <Space style={{ marginInlineStart: 24 }}>
+          <span>{t('language')}</span>
+          <Select
+            value={i18n.language === 'az' ? 'az' : 'ru'}
+            onChange={(language: 'az' | 'ru') => {
+              DemoPreferencesStore.setLanguage(language);
+              void i18n.changeLanguage(language);
+            }}
+            options={[
+              { value: 'az', label: t('azerbaijani') },
+              { value: 'ru', label: t('russian') },
+            ]}
+            style={{ width: 180 }}
+          />
         </Space>
       </Card>
 

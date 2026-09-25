@@ -13,24 +13,26 @@ import {
   SettingOutlined,
 } from '@ant-design/icons';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const ITEMS = [
-  { key: '/', icon: <DashboardOutlined />, label: 'Обзор' },
-  { key: '/products', icon: <ShoppingOutlined />, label: 'Товары' },
-  { key: '/orders', icon: <FileTextOutlined />, label: 'Заказы' },
-  { key: '/inventory', icon: <DatabaseOutlined />, label: 'Склад и остатки' },
-  { key: '/returns', icon: <RollbackOutlined />, label: 'Возвраты' },
-  { key: '/finance', icon: <DollarOutlined />, label: 'Финансы' },
-  { key: '/analytics', icon: <LineChartOutlined />, label: 'Аналитика' },
-  { key: '/ai', icon: <RobotOutlined />, label: 'AI-аналитик' },
-  { key: '/alerts', icon: <BellOutlined />, label: 'Оповещения и email' },
-  { key: '/sync', icon: <SyncOutlined />, label: 'Синхронизация' },
-  { key: '/settings', icon: <SettingOutlined />, label: 'Настройки' },
+  { key: '/', icon: <DashboardOutlined />, label: 'overview' },
+  { key: '/products', icon: <ShoppingOutlined />, label: 'products' },
+  { key: '/orders', icon: <FileTextOutlined />, label: 'orders' },
+  { key: '/inventory', icon: <DatabaseOutlined />, label: 'inventory' },
+  { key: '/returns', icon: <RollbackOutlined />, label: 'returns' },
+  { key: '/finance', icon: <DollarOutlined />, label: 'finance' },
+  { key: '/analytics', icon: <LineChartOutlined />, label: 'analytics' },
+  { key: '/ai', icon: <RobotOutlined />, label: 'ai' },
+  { key: '/alerts', icon: <BellOutlined />, label: 'alerts' },
+  { key: '/sync', icon: <SyncOutlined />, label: 'sync' },
+  { key: '/settings', icon: <SettingOutlined />, label: 'settings' },
 ];
 
 export function SidebarMenu({ onNavigate }: { onNavigate?: () => void }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const selectedKey =
     ITEMS.find((i) => i.key !== '/' && location.pathname.startsWith(i.key))?.key ??
@@ -41,7 +43,7 @@ export function SidebarMenu({ onNavigate }: { onNavigate?: () => void }) {
       theme="dark"
       mode="inline"
       selectedKeys={[selectedKey]}
-      items={ITEMS}
+      items={ITEMS.map((item) => ({ ...item, label: t(item.label) }))}
       style={{ background: 'transparent', borderInlineEnd: 'none' }}
       onClick={({ key }) => {
         navigate(key);

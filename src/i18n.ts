@@ -1,11 +1,10 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import { DemoPreferencesStore } from './services/DemoPreferencesStore';
 
-// The application currently ships with Russian as its only enabled UI locale.
-// Keeping the locale in i18next makes adding Azerbaijani/English later a resource-only change.
 void i18n.use(initReactI18next).init({
-  lng: 'ru',
-  fallbackLng: 'ru',
+  lng: DemoPreferencesStore.getLanguage(),
+  fallbackLng: 'az',
   interpolation: { escapeValue: false },
   resources: {
     ru: {
@@ -22,6 +21,32 @@ void i18n.use(initReactI18next).init({
         alerts: 'Оповещения и email',
         sync: 'Синхронизация',
         settings: 'Настройки',
+        appearance: 'Внешний вид',
+        language: 'Язык',
+        russian: 'Русский',
+        azerbaijani: 'Азербайджанский',
+        darkTheme: 'Тёмная тема',
+      },
+    },
+    az: {
+      translation: {
+        appName: 'Ozon ERP',
+        overview: 'İcmal',
+        products: 'Məhsullar',
+        orders: 'Sifarişlər',
+        inventory: 'Anbar və qalıqlar',
+        returns: 'Qaytarmalar',
+        finance: 'Maliyyə',
+        analytics: 'Analitika',
+        ai: 'AI-analitik',
+        alerts: 'Bildirişlər və email',
+        sync: 'Sinxronizasiya',
+        settings: 'Ayarlar',
+        appearance: 'Görünüş',
+        language: 'Dil',
+        russian: 'Rus dili',
+        azerbaijani: 'Azərbaycan dili',
+        darkTheme: 'Tünd tema',
       },
     },
   },

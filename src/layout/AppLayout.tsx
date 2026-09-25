@@ -12,7 +12,7 @@ function useCurrentTitle(): string {
   const location = useLocation();
   const { t } = useTranslation();
   const match = NAV_ITEMS.find((i) => (i.key === '/' ? location.pathname === '/' : location.pathname.startsWith(i.key)));
-  return (match?.label as string) ?? t('overview');
+  return match ? t(match.label as string) : t('overview');
 }
 
 export function AppLayout() {

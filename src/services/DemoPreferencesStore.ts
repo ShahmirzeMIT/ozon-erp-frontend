@@ -12,6 +12,7 @@ const KEYS = {
   emailSubscription: 'ozon-erp-demo:email-subscription',
   costOverrides: 'ozon-erp-demo:cost-overrides',
   theme: 'ozon-erp-demo:theme',
+  language: 'ozon-erp-demo:language',
   syncDemoMode: 'ozon-erp-demo:sync-demo-mode',
   syncOverrideTimestamps: 'ozon-erp-demo:sync-timestamps',
 } as const;
@@ -89,6 +90,13 @@ export const DemoPreferencesStore = {
   },
   setTheme(theme: 'light' | 'dark'): void {
     writeJson(KEYS.theme, theme);
+  },
+
+  getLanguage(): 'az' | 'ru' {
+    return readJson<'az' | 'ru'>(KEYS.language, 'az');
+  },
+  setLanguage(language: 'az' | 'ru'): void {
+    writeJson(KEYS.language, language);
   },
 
   getSyncDemoMode(): SyncDemoMode {
