@@ -66,7 +66,7 @@ export function AppLayout() {
 
       <Layout>
         <Topbar />
-        <Content style={{ padding: 20 }}>
+        <Content className="app-content" style={{ padding: 20 }}>
           <Breadcrumb
             items={[{ title: 'Ozon ERP' }, { title }]}
             style={{ marginBottom: 8 }}

@@ -2,7 +2,6 @@ import { Card, Switch, Space, Descriptions, Button, Popconfirm, message, Alert, 
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { useAppState } from '../../hooks/useAppState';
 import { DemoPreferencesStore } from '../../services/DemoPreferencesStore';
-import { DemoTag } from '../../components/DemoTag';
 import { useTranslation } from 'react-i18next';
 
 export function SettingsPage() {
@@ -11,7 +10,7 @@ export function SettingsPage() {
 
   const resetDemoData = () => {
     DemoPreferencesStore.resetAll();
-    message.success('Демо-настройки сброшены. Страница перезагружается...');
+        message.success('Lokal ayarlar sıfırlandı. Səhifə yenilənir...');
     setTimeout(() => window.location.reload(), 600);
   };
 
@@ -21,8 +20,8 @@ export function SettingsPage() {
         type="info"
         showIcon
         className="section-card"
-        message="Эта ERP работает в демо-режиме только на frontend"
-        description="Ozon Client-Id / Api-Key, планирование cron, отправка email и интеграция AI (Gemini) будут выполняться только на backend. Секретные ключи на этой странице не запрашиваются и не сохраняются."
+        message="Bu ERP real rejimdə frontend və backend ilə işləyir"
+        description="Ozon Client-Id və Api-Key yalnız backend-də saxlanılır. Məxfi açarlar bu səhifədə tələb olunmur və saxlanılmır."
       />
 
       <Card size="small" className="section-card" title={t('appearance')}>
@@ -47,16 +46,16 @@ export function SettingsPage() {
         </Space>
       </Card>
 
-      <Card size="small" className="section-card" title="Данные магазина (демо, только чтение)">
+      <Card size="small" className="section-card" title="Mağaza məlumatları (yalnız oxu)">
         <Descriptions column={1} bordered size="small">
-        <Descriptions.Item label="Магазин">{storeName}</Descriptions.Item>
-        <Descriptions.Item label="Валюта">RUB (₽)</Descriptions.Item>
-        <Descriptions.Item label="Часовой пояс">Asia/Baku</Descriptions.Item>
+        <Descriptions.Item label="Mağaza">{storeName}</Descriptions.Item>
+        <Descriptions.Item label="Valyuta">RUB (₽)</Descriptions.Item>
+        <Descriptions.Item label="Saat qurşağı">Asia/Baku</Descriptions.Item>
           <Descriptions.Item
             label={
               <span>
                 Ozon Client-Id{' '}
-                <Tooltip title="В целях безопасности ключи должны храниться только на backend">
+              <Tooltip title="Təhlükəsizlik üçün açarlar yalnız backend-də saxlanılmalıdır">
                   <InfoCircleOutlined />
                 </Tooltip>
               </span>
@@ -70,13 +69,13 @@ export function SettingsPage() {
         </Descriptions>
       </Card>
 
-      <Card size="small" className="section-card" title="Сбросить демо-данные" extra={<DemoTag label="Только это устройство" />}>
+      <Card size="small" className="section-card" title="Lokal ayarları sıfırla">
         <p className="muted">
-          Избранные товары, правила оповещений, подписка на email, изменения себестоимости и тема хранятся в
-          браузере этого устройства (localStorage). Кнопка ниже удаляет эти данные и возвращает демо-набор в исходное состояние.
+          Seçilmiş məhsullar, bildiriş qaydaları, e-poçt abunəliyi, maya dəyəri dəyişiklikləri və mövzu
+          bu cihazın brauzerində saxlanılır. Aşağıdakı düymə bu məlumatları silir.
         </p>
-        <Popconfirm title="Удалить все демо-настройки?" onConfirm={resetDemoData} okText="Да, сбросить" cancelText="Отмена">
-          <Button danger>Сбросить демо-настройки</Button>
+        <Popconfirm title="Bütün lokal ayarlar silinsin?" onConfirm={resetDemoData} okText="Bəli, sıfırla" cancelText="Ləğv et">
+          <Button danger>Lokal ayarları sıfırla</Button>
         </Popconfirm>
       </Card>
     </div>

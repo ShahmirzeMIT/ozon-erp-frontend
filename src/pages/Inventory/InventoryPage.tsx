@@ -1,12 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Card, Select, Switch, Table, Tag, Space, InputNumber, Tooltip } from 'antd';
+import { Card, Select, Switch, Table, Tag, Space, InputNumber, Tooltip, Image } from 'antd';
 import { Column } from '@ant-design/charts';
 import { Link } from 'react-router-dom';
 import { useDataSource } from '../../hooks/useDataSource';
 import { formatNumber } from '../../components/format';
 import type { FulfilmentType, InventoryFilters } from '../../types';
-import { getMockDataset } from '../../data/mock';
 
 export function InventoryPage() {
   const ds = useDataSource();
@@ -21,17 +20,18 @@ export function InventoryPage() {
   );
 
   const { data: warehouses } = useQuery({ queryKey: ['warehouses'], queryFn: () => ds.getWarehouses() });
+  const { data: products } = useQuery({ queryKey: ['inventory-products'], queryFn: () => ds.getProducts({ page: 1, pageSize: 10000 }) });
   const { data: snapshots, isLoading } = useQuery({
     queryKey: ['inventory', filters],
     queryFn: () => ds.getInventory(filters),
   });
 
-  const dataset = getMockDataset();
+  const productMap = new Map((products?.items ?? []).map((product) => [product.productId, product]));
 
   const rows = (snapshots ?? []).flatMap((s) => {
-    const product = dataset.products.find((p) => p.productId === s.productId);
+    const product = productMap.get(s.productId);
     if (!product) return [];
-    const velocity = product.velocityPerDay || 0.01;
+    const velocity = Math.max(product.orders30d / 30, 0.01);
     const daysLeft = s.available > 0 ? Math.round(s.available / velocity) : 0;
     return [{ ...s, productName: product.name, velocity, daysLeft }];
   });
@@ -39,8 +39,9 @@ export function InventoryPage() {
   const topLowStock = [...rows].sort((a, b) => a.daysLeft - b.daysLeft).slice(0, 8);
 
   const warehouseTotals = (warehouses ?? []).map((w) => ({
+    warehouseId: w.warehouseId,
     warehouse: w.name,
-    present: dataset.inventorySnapshots.filter((s) => s.warehouseId === w.warehouseId).reduce((s, i) => s + i.present, 0),
+    present: (snapshots ?? []).filter((s) => s.warehouseId === w.warehouseId).reduce((s, i) => s + i.present, 0),
   }));
 
   return (
@@ -48,14 +49,15 @@ export function InventoryPage() {
       <Card size="small" className="section-card">
         <Space wrap>
           <Select
-            placeholder="Склад"
+            placeholder="Anbar"
             allowClear
             style={{ minWidth: 220 }}
+            value={warehouseId}
             options={(warehouses ?? []).map((w) => ({ value: w.warehouseId, label: `${w.name} (${w.type})` }))}
             onChange={setWarehouseId}
           />
           <Select
-            placeholder="Тип"
+            placeholder="Tip"
             allowClear
             style={{ minWidth: 140 }}
             options={[
@@ -66,12 +68,12 @@ export function InventoryPage() {
           />
           <Space size={4}>
             <Switch checked={criticalOnly} onChange={setCriticalOnly} />
-            <span>Фильтр критичности</span>
+            <span>Kritiklik filtri</span>
           </Space>
           {criticalOnly && (
-            <Tooltip title="Показываются товары, запас которых закончится раньше указанного срока">
+            <Tooltip title="Qalığı göstərilən müddətdən tez bitəcək məhsullar göstərilir">
               <Space size={4}>
-              <span>Порог (дни):</span>
+              <span>Hədd (gün):</span>
                 <InputNumber min={1} max={60} value={criticalDaysThreshold} onChange={(v) => setCriticalDaysThreshold(v ?? 7)} />
               </Space>
             </Tooltip>
@@ -80,23 +82,30 @@ export function InventoryPage() {
       </Card>
 
       <div className="chart-grid-2">
-        <Card size="small" title="Малый остаток — примерный срок окончания" className="section-card">
+        <Card size="small" title="Az qalıq — təxmini bitmə müddəti" className="section-card">
           <Table
             size="small"
             rowKey={(r) => `${r.productId}-${r.warehouseId}`}
             loading={isLoading}
             pagination={false}
+            scroll={{ y: 360 }}
             dataSource={topLowStock}
             columns={[
               {
-                title: 'Товар',
+                title: 'Şəkil',
+                dataIndex: 'productId',
+                width: 116,
+                render: (_: string, r) => { const product = productMap.get(r.productId); return product?.imageUrl ? <Image src={product.imageUrl} width={96} height={96} preview style={{ objectFit: 'cover', borderRadius: 8 }} /> : product?.imageEmoji; },
+              },
+              {
+                title: 'Məhsul',
                 dataIndex: 'productName',
                 render: (v: string, r) => <Link to={`/products/${r.productId}`}>{v}</Link>,
               },
               { title: 'Tip', dataIndex: 'type', render: (v: string) => <Tag>{v}</Tag> },
-              { title: 'Доступно', dataIndex: 'available' },
+              { title: 'Mövcud', dataIndex: 'available' },
               {
-                title: 'До окончания (дни)',
+                title: 'Bitməsinə (gün)',
                 dataIndex: 'daysLeft',
                 render: (v: number) =>
                   v === 0 ? '—' : <span style={{ color: v <= 7 ? 'var(--danger)' : undefined }}>{v}</span>,
@@ -104,12 +113,36 @@ export function InventoryPage() {
             ]}
           />
         </Card>
-        <Card size="small" title="Сравнение складов" className="section-card">
-          <Column data={warehouseTotals} xField="warehouse" yField="present" height={280} />
+        <Card size="small" title="Anbarların müqayisəsi" className="section-card">
+          <Column
+            data={warehouseTotals}
+            xField="warehouse"
+            yField="present"
+            height={280}
+            onReady={(chart) => {
+              chart.on('element:click', (event: any) => {
+                const eventData = event?.data?.data ?? event?.data;
+                const datum = Array.isArray(eventData) ? eventData[0] : eventData;
+                const name = datum?.warehouse ?? datum?.x ?? datum?.data?.warehouse;
+                const id = datum?.warehouseId ?? datum?.data?.warehouseId;
+                const clicked = warehouseTotals.find((item) => item.warehouse === name);
+                if (id || clicked) setWarehouseId(id ?? clicked?.warehouseId);
+              });
+            }}
+            onEvent={(_chart, event) => {
+              if (event.type !== 'element:click') return;
+              const eventData = event.data?.data ?? event.data;
+              const datum = Array.isArray(eventData) ? eventData[0] : eventData;
+              const name = datum?.warehouse ?? datum?.x ?? datum?.data?.warehouse;
+              const id = datum?.warehouseId ?? datum?.data?.warehouseId;
+              const clicked = warehouseTotals.find((item) => item.warehouse === name);
+              if (id || clicked) setWarehouseId(id ?? clicked?.warehouseId);
+            }}
+          />
         </Card>
       </div>
 
-      <Card size="small" title="Все остатки" className="section-card">
+      <Card size="small" title="Bütün qalıqlar" className="section-card">
         <div className="table-scroll-wrap">
           <Table
             size="small"
@@ -119,17 +152,23 @@ export function InventoryPage() {
             pagination={{ pageSize: 10, showSizeChanger: true }}
             columns={[
               {
-                title: 'Товар',
+                title: 'Şəkil',
+                dataIndex: 'productId',
+                width: 116,
+                render: (_: string, r) => { const product = productMap.get(r.productId); return product?.imageUrl ? <Image src={product.imageUrl} width={96} height={96} preview style={{ objectFit: 'cover', borderRadius: 8 }} /> : product?.imageEmoji; },
+              },
+              {
+                title: 'Məhsul',
                 dataIndex: 'productName',
                 render: (v: string, r) => <Link to={`/products/${r.productId}`}>{v}</Link>,
               },
               { title: 'Tip', dataIndex: 'type', render: (v: string) => <Tag>{v}</Tag> },
-              { title: 'Всего (present)', dataIndex: 'present' },
-              { title: 'Резерв (reserved)', dataIndex: 'reserved' },
-              { title: 'Доступно (available)', dataIndex: 'available' },
-              { title: 'Последнее обновление', dataIndex: 'date' },
+              { title: 'Cəmi (present)', dataIndex: 'present' },
+              { title: 'Rezerv (reserved)', dataIndex: 'reserved' },
+              { title: 'Mövcud (available)', dataIndex: 'available' },
+              { title: 'Son yenilənmə', dataIndex: 'date' },
               {
-                title: 'До окончания (дни)',
+                title: 'Bitməsinə (gün)',
                 dataIndex: 'daysLeft',
                 render: (v: number) => (v === 0 ? '—' : formatNumber(v)),
               },

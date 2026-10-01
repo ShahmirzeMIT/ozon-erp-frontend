@@ -1,133 +1,43 @@
-import type {
-  AiInsight,
-  AnalyticsDaily,
-  AnalyticsFilters,
-  DateRange,
-  FinanceTotals,
-  FinanceTransaction,
-  InventoryFilters,
-  InventorySnapshot,
-  OverviewData,
-  Posting,
-  PostingFilters,
-  Product,
-  ProductFilters,
-  ProductPricePoint,
-  RealizationDay,
-  RealizationMonth,
-  ReturnFilters,
-  ReturnRecord,
-  SyncRun,
-  Warehouse,
-} from '../types';
-import type { ErpDataSource, Paginated } from './ErpDataSource';
+import type { ErpDataSource, OzonRealizationRow, Paginated } from './ErpDataSource';
 import { ERP_API_BASE_URL } from './ErpDataSource';
-import {
-  normalizeAnalytics,
-  normalizeFinanceTotals,
-  normalizeFinanceTransactions,
-  normalizeInventory,
-  normalizeOverview,
-  normalizePosting,
-  normalizePostings,
-  normalizeProduct,
-  normalizeProducts,
-  normalizeRealizationDays,
-  normalizeRealizationMonths,
-  normalizeReturns,
-  normalizeSyncRuns,
-  normalizeWarehouses,
-} from './normalizers';
+import type { AiInsight, AnalyticsDaily, AnalyticsFilters, DateRange, FinanceTotals, FinanceTransaction, InventoryFilters, InventorySnapshot, OverviewData, Posting, PostingFilters, Product, ProductFilters, ProductPricePoint, RealizationDay, RealizationMonth, ReturnFilters, ReturnRecord, SyncRun, Warehouse } from '../types';
 
-/**
- * BACKEND HAZIR OLANDA İSTİFADƏ ÜÇÜN.
- *
- * Bu sinif hazırda HEÇ BİR şəbəkə çağırışı ETMİR — Ozon Client-Id/Api-Key
- * idarəetməsi, cron, email və AI inteqrasiyası tamamilə backend
- * tərəfindədir. Backend hazır olanda hər metod öz REST endpoint-inizə
- * `fetch(`${ERP_API_BASE_URL}/...`)` sorğusu göndərəcək və cavabı
- * `src/services/normalizers` vasitəsilə bu faylın idxal etdiyi UI
- * modellərinə çevirəcək.
- *
- * `src/hooks/useDataSource.ts` faylında `mockErpDataSource`-i
- * `new HttpErpDataSource()` ilə əvəz etməklə keçid edilir; UI
- * komponentlərində HEÇ NƏ dəyişdirilmir.
- */
+const query = (params: Record<string, unknown>) => Object.entries(params).flatMap(([key, value]) => {
+  if (value === undefined || value === null || value === '' || value === false) return [];
+  return [[key, Array.isArray(value) ? value.join(',') : String(value)]] as const;
+}).map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`).join('&');
+
 export class HttpErpDataSource implements ErpDataSource {
-  private notImplemented(method: string): never {
-    throw new Error(
-      `HttpErpDataSource.${method} hələ qoşulmayıb. BASE_URL: ${ERP_API_BASE_URL || '(təyin edilməyib)'}. ` +
-        'Backend hazır olduqda bu metodu öz endpoint-inizə fetch çağırışı ilə tamamlayın və normalizers qatından keçirin.',
-    );
+  private async get<T>(path: string, params: Record<string, unknown> = {}): Promise<T> {
+    const response = await fetch(`${ERP_API_BASE_URL}${path}${query(params) ? `?${query(params)}` : ''}`);
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.error || `API xətası: ${response.status}`);
+    return body as T;
   }
-
-  getOverview(_range: DateRange): Promise<OverviewData> {
-    return this.notImplemented('getOverview');
-    // Nümunə: const res = await fetch(`${ERP_API_BASE_URL}/overview?...`);
-    // return normalizeOverview(await res.json());
+  getOverview(range: DateRange) { return this.get<OverviewData>('/overview', range as unknown as Record<string, unknown>); }
+  getProducts(filters: ProductFilters) {
+    const { range, ...productFilters } = filters;
+    return this.get<Paginated<Product>>('/products', {
+      ...productFilters,
+      ...(range || {}),
+    });
   }
-  getProducts(_filters: ProductFilters): Promise<Paginated<Product>> {
-    return this.notImplemented('getProducts');
-  }
-  getProduct(_id: string): Promise<Product | null> {
-    return this.notImplemented('getProduct');
-  }
-  getPrices(_productId: string): Promise<ProductPricePoint[]> {
-    return this.notImplemented('getPrices');
-  }
-  getInventory(_filters: InventoryFilters): Promise<InventorySnapshot[]> {
-    return this.notImplemented('getInventory');
-  }
-  getInventoryHistory(_productId: string): Promise<{ date: string; present: number }[]> {
-    return this.notImplemented('getInventoryHistory');
-  }
-  getWarehouses(): Promise<Warehouse[]> {
-    return this.notImplemented('getWarehouses');
-  }
-  getPostings(_filters: PostingFilters): Promise<Paginated<Posting>> {
-    return this.notImplemented('getPostings');
-  }
-  getPosting(_postingNumber: string): Promise<Posting | null> {
-    return this.notImplemented('getPosting');
-  }
-  getReturns(_filters: ReturnFilters): Promise<Paginated<ReturnRecord>> {
-    return this.notImplemented('getReturns');
-  }
-  getAnalytics(_filters: AnalyticsFilters): Promise<AnalyticsDaily[]> {
-    return this.notImplemented('getAnalytics');
-  }
-  getFinanceTransactions(_range: DateRange): Promise<FinanceTransaction[]> {
-    return this.notImplemented('getFinanceTransactions');
-  }
-  getFinanceTotals(_range: DateRange): Promise<FinanceTotals> {
-    return this.notImplemented('getFinanceTotals');
-  }
-  getDailyRealization(_range: DateRange): Promise<RealizationDay[]> {
-    return this.notImplemented('getDailyRealization');
-  }
-  getMonthlyRealization(): Promise<RealizationMonth[]> {
-    return this.notImplemented('getMonthlyRealization');
-  }
-  getSyncRuns(): Promise<SyncRun[]> {
-    return this.notImplemented('getSyncRuns');
-  }
-  getAiInsight(_query: string, _range: DateRange): Promise<AiInsight> {
-    return this.notImplemented('getAiInsight');
-    // Nümunə: POST /api/ai/ask { query, range } -> backend Gemini-yə müraciət edir.
-  }
+  getProduct(id: string) { return this.get<Product | null>(`/products/${encodeURIComponent(id)}`); }
+  setProductCost(id: string, value: number) { return this.get<{ costPrice: number }>(`/products/${encodeURIComponent(id)}/cost`, { value }); }
+  getPrices(productId: string) { return this.get<ProductPricePoint[]>('/products/prices', { productId }); }
+  getInventory(filters: InventoryFilters) { return this.get<InventorySnapshot[]>('/inventory', filters as Record<string, unknown>); }
+  getInventoryHistory(productId: string) { return this.get<{ date: string; present: number }[]>('/inventory/history', { productId }); }
+  getWarehouses() { return this.get<Warehouse[]>('/warehouses'); }
+  getPostings(filters: PostingFilters) { return this.get<Paginated<Posting>>('/postings', { ...filters, ...(filters.range || {}) }); }
+  getPosting(postingNumber: string) { return this.get<Posting | null>(`/postings/${encodeURIComponent(postingNumber)}`); }
+  getReturns(filters: ReturnFilters) { return this.get<Paginated<ReturnRecord>>('/returns', { ...filters, ...(filters.range || {}) }); }
+  getAnalytics(filters: AnalyticsFilters) { return this.get<AnalyticsDaily[]>('/analytics', { ...filters, ...(filters.range || {}) }); }
+  getFinanceTransactions(range: DateRange) { return this.get<FinanceTransaction[]>('/finance/transactions', range as unknown as Record<string, unknown>); }
+  getRawRealization(range: DateRange) { return this.get<OzonRealizationRow[]>('/finance/realization/raw', range as unknown as Record<string, unknown>); }
+  getFinanceTotals(range: DateRange) { return this.get<FinanceTotals>('/finance/totals', range as unknown as Record<string, unknown>); }
+  getDailyRealization(range: DateRange) { return this.get<RealizationDay[]>('/finance/realization/daily', range as unknown as Record<string, unknown>); }
+  getMonthlyRealization(range?: DateRange) { return this.get<RealizationMonth[]>('/finance/realization/monthly', range ? (range as unknown as Record<string, unknown>) : {}); }
+  getSyncRuns() { return this.get<SyncRun[]>('/sync/runs'); }
+  async syncNow() { const response = await fetch(`${ERP_API_BASE_URL}/sync`, { method: 'POST' }); const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || `API xətası: ${response.status}`); return body as { ok: boolean }; }
+  getAiInsight(queryText: string, range: DateRange) { return this.get<AiInsight>('/ai/ask', { query: queryText, ...range }); }
 }
-
-void normalizeOverview;
-void normalizeProducts;
-void normalizeProduct;
-void normalizeInventory;
-void normalizeWarehouses;
-void normalizePostings;
-void normalizePosting;
-void normalizeReturns;
-void normalizeAnalytics;
-void normalizeFinanceTransactions;
-void normalizeFinanceTotals;
-void normalizeRealizationDays;
-void normalizeRealizationMonths;
-void normalizeSyncRuns;

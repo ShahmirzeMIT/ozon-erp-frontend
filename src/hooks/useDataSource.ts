@@ -1,10 +1,8 @@
 import type { ErpDataSource } from '../services/ErpDataSource';
-import { mockErpDataSource } from '../services/MockErpDataSource';
+import { HttpErpDataSource } from '../services/HttpErpDataSource';
 
-// Backend hazır olanda bu sətri `new HttpErpDataSource()` ilə əvəz edin.
-// UI komponentləri `ErpDataSource` interfeysinə bağlı olduğu üçün
-// heç bir başqa dəyişiklik tələb olunmur.
-const activeDataSource: ErpDataSource = mockErpDataSource;
+// Tətbiq yalnız lokal backend-dən gələn real Ozon cache məlumatından istifadə edir.
+const activeDataSource: ErpDataSource = new HttpErpDataSource();
 
 export function useDataSource(): ErpDataSource {
   return activeDataSource;

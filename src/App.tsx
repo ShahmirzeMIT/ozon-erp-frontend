@@ -36,7 +36,15 @@ dayjs.locale('ru');
 dayjs.tz.setDefault('Asia/Baku');
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      gcTime: 5 * 60_000,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
 });
 
 function ThemedApp() {

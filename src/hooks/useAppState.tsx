@@ -16,8 +16,8 @@ interface AppState {
 }
 
 const DEFAULT_RANGE: DateRange = {
-  start: dayjs('2026-09-24').subtract(29, 'day').format('YYYY-MM-DD'),
-  end: dayjs('2026-09-24').format('YYYY-MM-DD'),
+  start: dayjs().subtract(29, 'day').format('YYYY-MM-DD'),
+  end: dayjs().format('YYYY-MM-DD'),
 };
 
 const AppStateContext = createContext<AppState | null>(null);

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, Select, DatePicker, Table, Tag, Space, Statistic, Row, Col, Tooltip } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
@@ -8,7 +8,6 @@ import { Link } from 'react-router-dom';
 import { useAppState } from '../../hooks/useAppState';
 import { useDataSource } from '../../hooks/useDataSource';
 import { formatRub } from '../../components/format';
-import { getMockDataset } from '../../data/mock';
 import type { AnalyticsFilters, FulfilmentType } from '../../types';
 
 function shiftRangeBack(range: { start: string; end: string }) {
@@ -24,7 +23,6 @@ function shiftRangeBack(range: { start: string; end: string }) {
 export function AnalyticsPage() {
   const { dateRange } = useAppState();
   const ds = useDataSource();
-  const dataset = getMockDataset();
   const [range, setRange] = useState(dateRange);
   const [type, setType] = useState<FulfilmentType | undefined>();
   const [productId, setProductId] = useState<string | undefined>();
@@ -42,6 +40,9 @@ export function AnalyticsPage() {
   const { data: current, isLoading } = useQuery({ queryKey: ['analytics', filters], queryFn: () => ds.getAnalytics(filters) });
   const { data: previous } = useQuery({ queryKey: ['analytics-prev', previousFilters], queryFn: () => ds.getAnalytics(previousFilters) });
   const { data: warehouses } = useQuery({ queryKey: ['warehouses'], queryFn: () => ds.getWarehouses() });
+  const { data: productPage } = useQuery({ queryKey: ['analytics-products'], queryFn: () => ds.getProducts({ page: 1, pageSize: 10000 }) });
+
+  useEffect(() => setRange(dateRange), [dateRange]);
 
   const currentTotals = (current ?? []).reduce(
     (acc, d) => ({ orders: acc.orders + d.orders, units: acc.units + d.orderedUnits, sale: acc.sale + d.saleAmount, returns: acc.returns + d.returns }),
@@ -54,16 +55,15 @@ export function AnalyticsPage() {
 
   const pctChange = (cur: number, prev: number) => (prev === 0 ? null : Math.round(((cur - prev) / prev) * 1000) / 10);
 
-  const topAndWeak = [...dataset.products].sort((a, b) => b.orders30d - a.orders30d);
+  const products = productPage?.items ?? [];
+  const topAndWeak = [...products].sort((a, b) => b.orders30d - a.orders30d);
   const top5 = topAndWeak.slice(0, 5);
   const weak5 = [...topAndWeak].reverse().slice(0, 5);
 
-  const stockRisk = dataset.products
-    .filter((p) => p.criticalStock || p.fboStock + p.fbsStock < 20)
+  const stockRisk = products
+    .filter((p) => p.fboStock + p.fbsStock < 20)
     .sort((a, b) => a.fboStock + a.fbsStock - (b.fboStock + b.fbsStock))
     .slice(0, 8);
-
-  const hasConversionDenominator = false; // demo datasetdə klik/baxış sayı yoxdur
 
   return (
     <div>
@@ -83,7 +83,7 @@ export function AnalyticsPage() {
             showSearch
             style={{ minWidth: 220 }}
             optionFilterProp="label"
-            options={dataset.products.map((p) => ({ value: p.productId, label: p.name }))}
+            options={products.map((p) => ({ value: p.productId, label: p.name }))}
             onChange={setProductId}
           />
           <Select
@@ -203,7 +203,7 @@ export function AnalyticsPage() {
                 {
                   title: 'Status',
                   render: (_: unknown, r) => (
-                    <Tag color={r.criticalStock ? 'red' : 'orange'}>{r.criticalStock ? 'Критический' : 'Риск'}</Tag>
+                    <Tag color={r.fboStock + r.fbsStock <= 2 ? 'red' : 'orange'}>{r.fboStock + r.fbsStock <= 2 ? 'Kritik' : 'Risk'}</Tag>
                   ),
                 },
               ]}
@@ -212,11 +212,7 @@ export function AnalyticsPage() {
         </Col>
         <Col xs={24} lg={12}>
           <Card size="small" title="Конверсия" className="section-card">
-            {hasConversionDenominator ? (
-              <Statistic title="Konversiya" value={0} suffix="%" />
-            ) : (
-              <Tag color="default">Конверсия не рассчитывается — в демо нет просмотров и кликов</Tag>
-            )}
+            <Tag color="default">Konversiya üçün baxış və klik məlumatı Ozon API-dən verilmir</Tag>
           </Card>
           <Card size="small" title="Динамика возвратов" className="section-card">
             <div className="muted">

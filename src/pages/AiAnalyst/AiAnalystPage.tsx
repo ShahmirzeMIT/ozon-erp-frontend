@@ -3,14 +3,13 @@ import { Card, Input, Button, Space, Tag, Typography } from 'antd';
 import { SendOutlined, RobotOutlined } from '@ant-design/icons';
 import { useAppState } from '../../hooks/useAppState';
 import { useDataSource } from '../../hooks/useDataSource';
-import { DemoTag } from '../../components/DemoTag';
 import type { AiInsight } from '../../types';
 
 const QUICK_QUESTIONS = [
-  'У какого товара снизились продажи?',
-  'У какого товара запас закончится за 7 дней?',
-  'Почему выросла доля возвратов?',
-  'Лучшие товары за последние 30 дней',
+  'Hansı məhsulun satışları azalıb?',
+  'Hansı məhsulun qalığı 7 günə bitəcək?',
+  'Qaytarma faizi niyə artıb?',
+  'Son 30 günün ən yaxşı məhsulları',
 ];
 
 interface ChatMessage {
@@ -25,7 +24,7 @@ export function AiAnalystPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
-      text: 'Здравствуйте! Я демо AI-аналитик. Выберите готовый вопрос ниже или напишите свой — ответы рассчитываются на текущем демо-наборе данных.',
+      text: 'Salam! Sualınızı yazın — cavablar seçilmiş tarix aralığındakı Ozon məlumatlarından hesablanır.',
     },
   ]);
   const [input, setInput] = useState('');
@@ -50,9 +49,8 @@ export function AiAnalystPage() {
     <div>
       <Card size="small" className="section-card">
         <Space wrap>
-          <DemoTag label="Демо-анализ" />
           <span className="muted">
-            В этой версии запросы к Gemini API с frontend не выполняются. Ответы — детерминированные результаты демо-набора данных.
+            Cavablar lokal backend-də saxlanılan son Ozon sinxronizasiyası və seçilmiş tarix aralığı əsasında hesablanır.
           </span>
         </Space>
       </Card>
@@ -76,15 +74,14 @@ export function AiAnalystPage() {
             <div key={i} className={`ai-bubble ${m.role}`}>
               {m.role === 'assistant' && (
                 <div style={{ marginBottom: 4 }}>
-                  <RobotOutlined /> <b>AI-аналитик</b>
+                  <RobotOutlined /> <b>AI analitik</b>
                 </div>
               )}
               <Typography.Paragraph style={{ marginBottom: m.insight ? 8 : 0 }}>{m.text}</Typography.Paragraph>
               {m.insight && (
                 <Space size={4} wrap>
-                  <DemoTag label="Демо-анализ" />
                   <Tag>Metod: {m.insight.method}</Tag>
-                  <Tag>Период: {m.insight.rangeStart} — {m.insight.rangeEnd}</Tag>
+                  <Tag>Dövr: {m.insight.rangeStart} — {m.insight.rangeEnd}</Tag>
                 </Space>
               )}
             </div>
@@ -94,14 +91,14 @@ export function AiAnalystPage() {
 
         <Space.Compact style={{ width: '100%' }}>
           <Input
-            placeholder="Введите вопрос..."
+            placeholder="Sualınızı yazın..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onPressEnter={() => ask(input)}
             disabled={loading}
           />
           <Button type="primary" icon={<SendOutlined />} loading={loading} onClick={() => ask(input)}>
-            Отправить
+            Göndər
           </Button>
         </Space.Compact>
       </Card>

@@ -19,10 +19,10 @@ import {
 import { PlusOutlined, DeleteOutlined, StarFilled } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
-import { DemoTag } from '../../components/DemoTag';
 import { DemoPreferencesStore } from '../../services/DemoPreferencesStore';
 import { useWatchlist } from '../../hooks/useWatchlist';
-import { getMockDataset } from '../../data/mock';
+import { useDataSource } from '../../hooks/useDataSource';
+import { useQuery } from '@tanstack/react-query';
 import type { AlertRule, AlertRuleType, EmailFrequency, EmailSubscription } from '../../types';
 
 const RULE_TYPE_LABEL: Record<AlertRuleType, string> = {
@@ -34,14 +34,16 @@ const RULE_TYPE_LABEL: Record<AlertRuleType, string> = {
 
 export function AlertsPage() {
   const [watchlist] = useWatchlist();
-  const dataset = getMockDataset();
+  const ds = useDataSource();
+  const { data: productPage } = useQuery({ queryKey: ['alerts-products'], queryFn: () => ds.getProducts({ page: 1, pageSize: 10000 }) });
+  const products = productPage?.items ?? [];
   const [rules, setRules] = useState<AlertRule[]>(() => DemoPreferencesStore.getAlertRules());
   const [modalOpen, setModalOpen] = useState(false);
   const [form] = Form.useForm();
   const [emailForm] = Form.useForm<EmailSubscription>();
   const [emailSub, setEmailSub] = useState<EmailSubscription>(() => DemoPreferencesStore.getEmailSubscription());
 
-  const watchedProducts = dataset.products.filter((p) => watchlist.includes(p.productId));
+  const watchedProducts = products.filter((p) => watchlist.includes(p.productId));
 
   const persistRules = (next: AlertRule[]) => {
     setRules(next);
@@ -99,7 +101,6 @@ export function AlertsPage() {
         size="small"
         className="section-card"
         title="Избранные товары"
-        extra={<DemoTag label="Хранится только на этом устройстве" />}
       >
         {watchedProducts.length === 0 ? (
           <Empty description="Избранных товаров пока нет. Нажмите на звезду на странице товаров." />
@@ -137,7 +138,7 @@ export function AlertsPage() {
               dataIndex: 'productId',
               render: (v: string | null) =>
                 v ? (
-                  <Link to={`/products/${v}`}>{dataset.products.find((p) => p.productId === v)?.name}</Link>
+                  <Link to={`/products/${v}`}>{products.find((p) => p.productId === v)?.name ?? v}</Link>
                 ) : (
                   '— (вся система)'
                 ),
@@ -162,7 +163,7 @@ export function AlertsPage() {
         />
       </Card>
 
-      <Card size="small" className="section-card" title="Подписка на email-уведомления" extra={<DemoTag label="Email не отправляется" />}>
+      <Card size="small" className="section-card" title="Email bildirişləri">
         <Form
           form={emailForm}
           layout="vertical"
@@ -236,7 +237,7 @@ export function AlertsPage() {
                   <Select
                     showSearch
                     optionFilterProp="label"
-                    options={dataset.products.map((p) => ({ value: p.productId, label: p.name }))}
+                    options={products.map((p) => ({ value: p.productId, label: p.name }))}
                   />
                 </Form.Item>
               ) : null

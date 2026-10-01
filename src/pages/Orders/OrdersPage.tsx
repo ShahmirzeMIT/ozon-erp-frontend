@@ -1,26 +1,28 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Card, Tabs, Input, Select, DatePicker, Table, Tag } from 'antd';
+import { Card, Tabs, Input, Select, DatePicker, Table, Tag, Image } from 'antd';
 import { Link } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { useDataSource } from '../../hooks/useDataSource';
+import { useAppState } from '../../hooks/useAppState';
 import { formatRub } from '../../components/format';
-import type { FulfilmentType, PostingFilters, PostingStatus } from '../../types';
+import type { FulfilmentType, Posting, PostingFilters, PostingStatus } from '../../types';
 
 const STATUS_LABEL: Record<PostingStatus, { text: string; color: string }> = {
-  awaiting_packaging: { text: 'Собирается', color: 'blue' },
-  awaiting_deliver: { text: 'Готов к отправке', color: 'geekblue' },
-  delivering: { text: 'В пути', color: 'gold' },
-  delivered: { text: 'Доставлен', color: 'green' },
-  cancelled: { text: 'Отменён', color: 'red' },
+  awaiting_packaging: { text: 'Yığılır', color: 'blue' },
+  awaiting_deliver: { text: 'Göndərilməyə hazırdır', color: 'geekblue' },
+  delivering: { text: 'Yoldadır', color: 'gold' },
+  delivered: { text: 'Çatdırılıb', color: 'green' },
+  cancelled: { text: 'Ləğv edilib', color: 'red' },
 };
 
 export function OrdersPage() {
   const ds = useDataSource();
+  const { dateRange } = useAppState();
   const [type, setType] = useState<FulfilmentType>('FBO');
   const [status, setStatus] = useState<PostingStatus[]>([]);
   const [search, setSearch] = useState('');
-  const [range, setRange] = useState<[string, string] | null>(null);
+  const [range, setRange] = useState<[string, string] | null>([dateRange.start, dateRange.end]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -40,19 +42,26 @@ export function OrdersPage() {
     queryKey: ['postings', filters],
     queryFn: () => ds.getPostings(filters),
   });
+  useEffect(() => setRange([dateRange.start, dateRange.end]), [dateRange]);
 
   const columns = [
     {
-      title: 'Номер отправления',
+      title: 'Şəkil',
+      dataIndex: 'items',
+      width: 116,
+      render: (items: Posting['items']) => items?.[0]?.imageUrl ? <Image src={items[0].imageUrl} width={96} height={96} preview style={{ objectFit: 'cover', borderRadius: 8 }} /> : '📦',
+    },
+    {
+      title: 'Göndəriş nömrəsi',
       dataIndex: 'postingNumber',
       render: (v: string) => <Link to={`/orders/${v}`}>{v}</Link>,
     },
-    { title: 'Номер заказа', dataIndex: 'orderNumber' },
-    { title: 'Дата', dataIndex: 'createdAt', render: (v: string) => dayjs(v).format('DD.MM.YYYY HH:mm') },
-    { title: 'Количество', dataIndex: 'orderedUnits' },
-    { title: 'Сумма', dataIndex: 'amount', render: (v: number) => formatRub(v) },
+    { title: 'Sifariş nömrəsi', dataIndex: 'orderNumber' },
+    { title: 'Tarix', dataIndex: 'createdAt', render: (v: string) => dayjs(v).format('DD.MM.YYYY HH:mm') },
+    { title: 'Miqdar', dataIndex: 'orderedUnits' },
+    { title: 'Məbləğ', dataIndex: 'amount', render: (v: number) => formatRub(v) },
     {
-      title: 'Статус',
+      title: 'Status',
       dataIndex: 'status',
       render: (v: PostingStatus) => <Tag color={STATUS_LABEL[v].color}>{STATUS_LABEL[v].text}</Tag>,
     },
@@ -73,7 +82,7 @@ export function OrdersPage() {
       />
       <div className="page-header-row">
         <Input.Search
-          placeholder="Номер заказа / отправления"
+          placeholder="Sifariş / göndəriş nömrəsi"
           allowClear
           style={{ width: 260 }}
           onSearch={(v) => {
@@ -83,7 +92,7 @@ export function OrdersPage() {
         />
         <Select
           mode="multiple"
-          placeholder="Статус"
+          placeholder="Status"
           allowClear
           style={{ minWidth: 220 }}
           options={Object.entries(STATUS_LABEL).map(([value, meta]) => ({ value, label: meta.text }))}

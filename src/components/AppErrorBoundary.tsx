@@ -12,7 +12,7 @@ export class AppErrorBoundary extends React.Component<React.PropsWithChildren, S
   static getDerivedStateFromError(error: unknown): State {
     return {
       hasError: true,
-      message: error instanceof Error ? error.message : 'Произошла непредвиденная ошибка.',
+      message: error instanceof Error ? error.message : 'Gözlənilməyən xəta baş verdi.',
     };
   }
 
@@ -22,14 +22,14 @@ export class AppErrorBoundary extends React.Component<React.PropsWithChildren, S
     return (
       <Result
         status="error"
-        title="Страница не загрузилась"
+      title="Səhifə yüklənmədi"
         subTitle={this.state.message}
         extra={[
           <Button key="reload" type="primary" onClick={() => window.location.reload()}>
-            Перезагрузить
+            Yenidən yüklə
           </Button>,
           <Button key="home" onClick={() => { window.location.href = '/'; }}>
-            На главную
+            Əsas səhifəyə qayıt
           </Button>,
         ]}
       />

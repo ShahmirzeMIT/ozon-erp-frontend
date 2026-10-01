@@ -12,6 +12,7 @@ export interface Product {
   name: string;
   category: string;
   imageEmoji: string; // demo üçün ikon
+  imageUrl?: string;
   status: ProductStatus;
   currentPrice: number;
   currency: 'RUB';
@@ -60,6 +61,7 @@ export interface PostingItem {
   name: string;
   quantity: number;
   price: number;
+  imageUrl?: string;
 }
 
 export interface Posting {
@@ -93,6 +95,7 @@ export interface ReturnRecord {
   status: ReturnStatus;
   amount: number;
   createdAt: string; // ISO
+  imageUrl?: string;
 }
 
 export type FinanceTransactionType =
@@ -210,7 +213,7 @@ export interface AiInsight {
   rangeStart: string;
   rangeEnd: string;
   sourcedProductIds: string[];
-  isDemo: true;
+  isDemo: false;
   generatedAt: string;
 }
 
@@ -228,6 +231,7 @@ export interface ProductFilters {
   pageSize?: number;
   sortField?: keyof Product;
   sortOrder?: 'ascend' | 'descend';
+  range?: DateRange;
 }
 
 export interface PostingFilters {
@@ -241,6 +245,7 @@ export interface PostingFilters {
 }
 
 export interface ReturnFilters {
+  productId?: string;
   range?: DateRange;
   sku?: string;
   type?: FulfilmentType;
@@ -271,14 +276,17 @@ export interface OverviewData {
     orderedUnits: number;
     saleAmount: number;
     returnedAmount: number;
-    commissionAndServiceCost: number;
-    netPayout: number;
+    commission: number | null;
+    serviceCost: number | null;
+    commissionAndServiceCost: number | null;
+    financeEstimated: boolean;
+    netPayout: number | null;
     criticalStockCount: number;
   };
   trend: AnalyticsDaily[];
   fboFbsSplit: { type: FulfilmentType; orderedUnits: number }[];
   topProducts: { productId: string; name: string; orderedUnits: number }[];
-  criticalAlerts: { productId: string; name: string; message: string }[];
+  criticalAlerts: { productId: string; name: string; currentStock: number; message: string }[];
   recentPostings: Posting[];
   lastSync: SyncRun[];
 }

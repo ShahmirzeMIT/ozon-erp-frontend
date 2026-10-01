@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Card, Descriptions, Table, Tag, Space, Skeleton, Result, Steps, Alert } from 'antd';
+import { Button, Card, Descriptions, Table, Tag, Space, Skeleton, Result, Steps, Alert, Image } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useDataSource } from '../../hooks/useDataSource';
@@ -9,11 +9,11 @@ import type { PostingStatus } from '../../types';
 
 const STEP_ORDER: PostingStatus[] = ['awaiting_packaging', 'awaiting_deliver', 'delivering', 'delivered'];
 const STEP_LABEL: Record<PostingStatus, string> = {
-  awaiting_packaging: 'Собирается',
-  awaiting_deliver: 'Готов к отправке',
-  delivering: 'В пути',
-  delivered: 'Доставлен',
-  cancelled: 'Отменён',
+  awaiting_packaging: 'Yığılır',
+  awaiting_deliver: 'Göndərilməyə hazırdır',
+  delivering: 'Yoldadır',
+  delivered: 'Çatdırılıb',
+  cancelled: 'Ləğv edilib',
 };
 
 export function OrderDetailPage() {
@@ -35,10 +35,10 @@ export function OrderDetailPage() {
     return (
       <Result
         status="404"
-        title="Заказ не найден"
+        title="Sifariş tapılmadı"
         extra={
           <Button type="primary" onClick={() => navigate('/orders')}>
-            Вернуться к заказам
+            Sifarişlərə qayıt
           </Button>
         }
       />
@@ -57,17 +57,17 @@ export function OrderDetailPage() {
       </Space>
 
       {posting.status === 'cancelled' && (
-        <Alert type="error" showIcon message="Этот заказ отменён" style={{ marginBottom: 12 }} />
+        <Alert type="error" showIcon message="Bu sifariş ləğv edilib" style={{ marginBottom: 12 }} />
       )}
 
       <Card size="small" className="section-card" title={`Posting ${posting.postingNumber}`}>
         <Descriptions size="small" column={3} bordered>
-          <Descriptions.Item label="Номер заказа">{posting.orderNumber}</Descriptions.Item>
+          <Descriptions.Item label="Sifariş nömrəsi">{posting.orderNumber}</Descriptions.Item>
           <Descriptions.Item label="Тип"><Tag>{posting.type}</Tag></Descriptions.Item>
-          <Descriptions.Item label="Склад">{posting.warehouseId}</Descriptions.Item>
-          <Descriptions.Item label="Дата">{dayjs(posting.createdAt).format('DD.MM.YYYY HH:mm')}</Descriptions.Item>
-          <Descriptions.Item label="Заказанные единицы">{posting.orderedUnits}</Descriptions.Item>
-          <Descriptions.Item label="Сумма">{formatRub(posting.amount)}</Descriptions.Item>
+          <Descriptions.Item label="Anbar">{posting.warehouseId}</Descriptions.Item>
+          <Descriptions.Item label="Tarix">{dayjs(posting.createdAt).format('DD.MM.YYYY HH:mm')}</Descriptions.Item>
+          <Descriptions.Item label="Sifariş edilmiş vahidlər">{posting.orderedUnits}</Descriptions.Item>
+          <Descriptions.Item label="Məbləğ">{formatRub(posting.amount)}</Descriptions.Item>
         </Descriptions>
 
         {posting.status !== 'cancelled' && (
@@ -79,26 +79,27 @@ export function OrderDetailPage() {
         )}
       </Card>
 
-      <Card size="small" title="Товары" className="section-card">
+      <Card size="small" title="Məhsullar" className="section-card">
         <Table
           size="small"
           rowKey={(r) => r.productId}
           pagination={false}
           dataSource={posting.items}
           columns={[
+            { title: 'Şəkil', dataIndex: 'imageUrl', width: 116, render: (url: string | undefined) => url ? <Image src={url} width={96} height={96} preview style={{ objectFit: 'cover', borderRadius: 8 }} /> : '📦' },
             { title: 'Ad', dataIndex: 'name' },
             { title: 'Offer ID', dataIndex: 'offerId' },
             { title: 'Miqdar', dataIndex: 'quantity' },
-            { title: 'Цена', dataIndex: 'price', render: (v: number) => formatRub(v) },
+            { title: 'Qiymət', dataIndex: 'price', render: (v: number) => formatRub(v) },
             {
-              title: 'Итого',
+              title: 'Cəmi',
               render: (_: unknown, r) => formatRub(r.quantity * r.price),
             },
           ]}
         />
       </Card>
 
-      <Card size="small" title="Связанные финансовые операции" className="section-card">
+      <Card size="small" title="Əlaqəli maliyyə əməliyyatları" className="section-card">
         <Table
           size="small"
           rowKey="transactionId"
@@ -109,7 +110,7 @@ export function OrderDetailPage() {
             { title: 'Tip', dataIndex: 'category' },
             { title: 'Tarix', dataIndex: 'date' },
             {
-              title: 'Сумма',
+              title: 'Məbləğ',
               dataIndex: 'amount',
               render: (v: number) => (
                 <span style={{ color: v < 0 ? 'var(--danger)' : 'var(--success)' }}>{formatRub(v)}</span>

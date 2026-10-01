@@ -40,6 +40,7 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 14px;
   transition: background-color 0.2s ease;
+  overflow-x: hidden;
 }
 
 .demo-tag {
@@ -58,7 +59,7 @@ body {
 
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 16px;
 }
@@ -70,9 +71,103 @@ body {
   margin-bottom: 16px;
 }
 
+.overview-alerts .ant-list {
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.overview-alert-name {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.35;
+}
+
+.overview-critical-name {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  white-space: normal;
+  line-height: 1.25;
+  font-size: 17px;
+}
+
+.overview-alerts .ant-alert {
+  padding: 10px 14px;
+}
+
+.overview-alerts .ant-alert-message {
+  margin-bottom: 4px;
+}
+
 @media (max-width: 900px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .chart-grid-2 {
     grid-template-columns: 1fr;
+  }
+
+  .app-content {
+    padding: 14px !important;
+  }
+}
+
+@media (max-width: 1200px) and (min-width: 901px) {
+  .kpi-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 576px) {
+  body {
+    font-size: 13px;
+  }
+
+  .app-content {
+    padding: 10px !important;
+  }
+
+  .app-content h2 {
+    font-size: 18px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .kpi-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .chart-grid-2,
+  .section-card + .section-card {
+    margin-bottom: 10px;
+  }
+
+  .overview-page .ant-card-body {
+    padding: 10px;
+  }
+
+  .overview-page .ant-card-head {
+    min-height: 42px;
+    padding: 0 10px;
+  }
+
+  .overview-alerts .ant-list {
+    max-height: 250px;
+  }
+
+  .page-header-row {
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .page-header-row > * {
+    max-width: 100%;
   }
 }
 

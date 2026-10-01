@@ -8,7 +8,6 @@ import {
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useAppState } from '../hooks/useAppState';
-import { DemoTag } from '../components/DemoTag';
 
 const { useBreakpoint } = Grid;
 
@@ -34,7 +33,6 @@ export function Topbar() {
         {isMobile && (
           <Button icon={<MenuOutlined />} type="text" onClick={() => setMobileMenuOpen(true)} aria-label="Menyu" />
         )}
-        <DemoTag />
         {!isMobile && <span style={{ fontWeight: 600 }}>{storeName}</span>}
       </Space>
 
@@ -58,13 +56,13 @@ export function Topbar() {
           onClick={toggleTheme}
         />
         <Badge count={3} size="small">
-            <Button shape="circle" type="text" icon={<BellOutlined />} aria-label="Уведомления" />
+            <Button shape="circle" type="text" icon={<BellOutlined />} aria-label="Bildirişlər" />
         </Badge>
         <Dropdown
           menu={{
             items: [
               { key: 'profile', label: 'Profil' },
-              { key: 'logout', label: 'Backend не подключён', disabled: true },
+              { key: 'logout', label: 'Backend qoşulmayıb', disabled: true },
             ],
           }}
         >

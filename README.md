@@ -1,6 +1,6 @@
-# Ozon ERP — Frontend (Demo, Backend-siz)
+# Ozon ERP — Frontend
 
-React 19 + TypeScript + Vite + Ant Design 5 üzərində qurulmuş, **tamamilə frontend-only** Ozon marketplace ERP demo interfeysi. Bu layihədə heç bir real Ozon API çağırışı, backend, cron, email göndərilməsi və ya AI (LLM) inteqrasiyası YOXDUR — bütün data deterministik şəkildə brauzerdə generasiya olunan mock datasetdən gəlir.
+React 19 + TypeScript + Vite + Ant Design üzərində qurulmuş Ozon marketplace ERP interfeysi. Real rejimdə frontend yalnız lokal `ozon-erp-backend` API-sinə qoşulur; mock rejim üçün `VITE_USE_MOCK=true` istifadə etmək olar.
 
 ## Sürətli başlanğıc
 
