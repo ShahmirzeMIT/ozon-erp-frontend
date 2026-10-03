@@ -1,5 +1,6 @@
 import type {
   AiInsight,
+  AlertSchedule,
   AnalyticsDaily,
   AnalyticsFilters,
   DateRange,
@@ -48,6 +49,7 @@ export interface ErpDataSource {
   getPostings(filters: PostingFilters): Promise<Paginated<Posting>>;
   getPosting(postingNumber: string): Promise<Posting | null>;
   getReturns(filters: ReturnFilters): Promise<Paginated<ReturnRecord>>;
+  getReturn(returnId: string): Promise<ReturnRecord | null>;
   getAnalytics(filters: AnalyticsFilters): Promise<AnalyticsDaily[]>;
   getFinanceTransactions(range: DateRange): Promise<FinanceTransaction[]>;
   getRawRealization(range: DateRange): Promise<OzonRealizationRow[]>;
@@ -57,6 +59,9 @@ export interface ErpDataSource {
   getSyncRuns(): Promise<SyncRun[]>;
   syncNow(): Promise<{ ok: boolean }>;
   getAiInsight(query: string, range: DateRange): Promise<AiInsight>;
+  getAlertSchedule(): Promise<AlertSchedule>;
+  saveAlertSchedule(schedule: AlertSchedule): Promise<AlertSchedule>;
+  testAlertSchedule(): Promise<{ sent: boolean; errors?: string[] }>;
 }
 
 // Gələcək backend üçün konfiqurasiya nöqtəsi. Yalnız gizli olmayan dəyər.

@@ -20,6 +20,7 @@ import { OrdersPage } from './pages/Orders/OrdersPage';
 import { OrderDetailPage } from './pages/Orders/OrderDetailPage';
 import { InventoryPage } from './pages/Inventory/InventoryPage';
 import { ReturnsPage } from './pages/Returns/ReturnsPage';
+import { ReturnDetailPage } from './pages/Returns/ReturnDetailPage';
 import { FinancePage } from './pages/Finance/FinancePage';
 import { AnalyticsPage } from './pages/Analytics/AnalyticsPage';
 import { AiAnalystPage } from './pages/AiAnalyst/AiAnalystPage';
@@ -70,6 +71,7 @@ function ThemedApp() {
             <Route path="/orders/:postingNumber" element={<OrderDetailPage />} />
             <Route path="/inventory" element={<InventoryPage />} />
             <Route path="/returns" element={<ReturnsPage />} />
+            <Route path="/returns/:returnId" element={<ReturnDetailPage />} />
             <Route path="/finance" element={<FinancePage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/ai" element={<AiAnalystPage />} />

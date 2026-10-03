@@ -78,16 +78,26 @@ export function AnalyticsPage() {
           />
           <Select placeholder="FBO/FBS" allowClear style={{ minWidth: 140 }} options={[{ value: 'FBO', label: 'FBO' }, { value: 'FBS', label: 'FBS' }]} onChange={setType} />
           <Select
-            placeholder="Товар"
+            placeholder="Məhsul"
             allowClear
             showSearch
-            style={{ minWidth: 220 }}
+            style={{ width: 320, maxWidth: '100%' }}
             optionFilterProp="label"
+            listHeight={280}
+            popupMatchSelectWidth
+            optionRender={(option) => (
+              <div
+                title={String(option.label ?? '')}
+                style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+              >
+                {option.label}
+              </div>
+            )}
             options={products.map((p) => ({ value: p.productId, label: p.name }))}
             onChange={setProductId}
           />
           <Select
-            placeholder="Склад"
+            placeholder="Anbar"
             allowClear
             style={{ minWidth: 200 }}
             options={(warehouses ?? []).map((w) => ({ value: w.warehouseId, label: w.name }))}
@@ -100,13 +110,13 @@ export function AnalyticsPage() {
         <Col xs={12} md={6}>
           <Card size="small">
             <Statistic
-              title="Количество заказов"
+              title="Sifariş sayı"
               value={currentTotals.orders}
               suffix={
                 pctChange(currentTotals.orders, previousTotals.orders) !== null && (
                   <span className="muted" style={{ fontSize: 12 }}>
                     ({pctChange(currentTotals.orders, previousTotals.orders)! >= 0 ? '+' : ''}
-                    {pctChange(currentTotals.orders, previousTotals.orders)}% к предыдущему периоду)
+                    {pctChange(currentTotals.orders, previousTotals.orders)}% əvvəlki dövrlə müqayisədə)
                   </span>
                 )
               }
@@ -115,17 +125,17 @@ export function AnalyticsPage() {
         </Col>
         <Col xs={12} md={6}>
           <Card size="small">
-            <Statistic title="Заказанные единицы" value={currentTotals.units} />
+            <Statistic title="Sifariş edilmiş vahidlər" value={currentTotals.units} />
           </Card>
         </Col>
         <Col xs={12} md={6}>
           <Card size="small">
-            <Statistic title="Сумма продаж" value={formatRub(currentTotals.sale)} />
+            <Statistic title="Satış məbləği" value={formatRub(currentTotals.sale)} />
           </Card>
         </Col>
         <Col xs={12} md={6}>
           <Card size="small">
-            <Statistic title="Сумма возвратов" value={formatRub(currentTotals.returns)} valueStyle={{ color: 'var(--danger)' }} />
+            <Statistic title="Qaytarma məbləği" value={formatRub(currentTotals.returns)} valueStyle={{ color: 'var(--danger)' }} />
           </Card>
         </Col>
       </Row>
@@ -135,8 +145,8 @@ export function AnalyticsPage() {
         className="section-card"
         title={
           <span>
-            Ежедневный тренд заказов/продаж{' '}
-            <Tooltip title="Метрика агрегирована по отправлениям согласно выбранным фильтрам. Источник: набор заказов">
+            Gündəlik sifariş və satış trendi{' '}
+            <Tooltip title="Göstərici seçilmiş filtrlərə uyğun göndərişlər üzrə toplanır. Mənbə: sifarişlər dəsti">
               <InfoCircleOutlined />
             </Tooltip>
           </span>
@@ -145,8 +155,8 @@ export function AnalyticsPage() {
         <Line
           loading={isLoading}
           data={(current ?? []).flatMap((d) => [
-            { date: d.date, value: d.orderedUnits, type: 'Заказанные единицы' },
-            { date: d.date, value: d.orders, type: 'Количество заказов' },
+            { date: d.date, value: d.orderedUnits, type: 'Sifariş edilmiş vahidlər' },
+            { date: d.date, value: d.orders, type: 'Sifariş sayı' },
           ])}
           xField="date"
           yField="value"
@@ -157,29 +167,29 @@ export function AnalyticsPage() {
 
       <Row gutter={12}>
         <Col xs={24} lg={12}>
-          <Card size="small" title="Топ-5 товаров (30 дней)" className="section-card">
+          <Card size="small" title="Ən yaxşı 5 məhsul (30 gün)" className="section-card">
             <Table
               size="small"
               rowKey="productId"
               pagination={false}
               dataSource={top5}
               columns={[
-                { title: 'Товар', dataIndex: 'name', render: (v: string, r) => <Link to={`/products/${r.productId}`}>{v}</Link> },
-                { title: '30g vahid', dataIndex: 'orders30d' },
+                { title: 'Məhsul', dataIndex: 'name', render: (v: string, r) => <Link to={`/products/${r.productId}`}>{v}</Link> },
+                { title: '30 günlük vahid', dataIndex: 'orders30d' },
               ]}
             />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card size="small" title="Слабые 5 товаров (30 дней)" className="section-card">
+          <Card size="small" title="Ən zəif 5 məhsul (30 gün)" className="section-card">
             <Table
               size="small"
               rowKey="productId"
               pagination={false}
               dataSource={weak5}
               columns={[
-                { title: 'Товар', dataIndex: 'name', render: (v: string, r) => <Link to={`/products/${r.productId}`}>{v}</Link> },
-                { title: '30g vahid', dataIndex: 'orders30d' },
+                { title: 'Məhsul', dataIndex: 'name', render: (v: string, r) => <Link to={`/products/${r.productId}`}>{v}</Link> },
+                { title: '30 günlük vahid', dataIndex: 'orders30d' },
               ]}
             />
           </Card>
@@ -188,22 +198,22 @@ export function AnalyticsPage() {
 
       <Row gutter={12}>
         <Col xs={24} lg={12}>
-          <Card size="small" title="Риск дефицита" className="section-card">
+          <Card size="small" title="Qıtlıq riski" className="section-card">
             <Table
               size="small"
               rowKey="productId"
               pagination={false}
               dataSource={stockRisk}
               columns={[
-                { title: 'Товар', dataIndex: 'name', render: (v: string, r) => <Link to={`/products/${r.productId}`}>{v}</Link> },
+                { title: 'Məhsul', dataIndex: 'name', render: (v: string, r) => <Link to={`/products/${r.productId}`}>{v}</Link> },
                 {
-                  title: 'Общий остаток',
+                  title: 'Ümumi qalıq',
                   render: (_: unknown, r) => r.fboStock + r.fbsStock,
                 },
                 {
-                  title: 'Status',
+                  title: 'Vəziyyət',
                   render: (_: unknown, r) => (
-                    <Tag color={r.fboStock + r.fbsStock <= 2 ? 'red' : 'orange'}>{r.fboStock + r.fbsStock <= 2 ? 'Kritik' : 'Risk'}</Tag>
+                  <Tag color={r.fboStock + r.fbsStock <= 2 ? 'red' : 'orange'}>{r.fboStock + r.fbsStock <= 2 ? 'Kritik' : 'Risk altında'}</Tag>
                   ),
                 },
               ]}
@@ -211,12 +221,12 @@ export function AnalyticsPage() {
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card size="small" title="Конверсия" className="section-card">
+          <Card size="small" title="Konversiya" className="section-card">
             <Tag color="default">Konversiya üçün baxış və klik məlumatı Ozon API-dən verilmir</Tag>
           </Card>
-          <Card size="small" title="Динамика возвратов" className="section-card">
+          <Card size="small" title="Qaytarmaların dinamikası" className="section-card">
             <div className="muted">
-              Возвраты за текущий период: {formatRub(currentTotals.returns)}, за предыдущий: {formatRub(previousTotals.returns)}
+              Cari dövr üzrə qaytarmalar: {formatRub(currentTotals.returns)}, əvvəlki dövr üzrə: {formatRub(previousTotals.returns)}
               {pctChange(currentTotals.returns, previousTotals.returns) !== null && (
                 <> ({pctChange(currentTotals.returns, previousTotals.returns)! >= 0 ? '+' : ''}{pctChange(currentTotals.returns, previousTotals.returns)}%)</>
               )}

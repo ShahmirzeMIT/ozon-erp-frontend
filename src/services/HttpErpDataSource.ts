@@ -1,6 +1,6 @@
 import type { ErpDataSource, OzonRealizationRow, Paginated } from './ErpDataSource';
 import { ERP_API_BASE_URL } from './ErpDataSource';
-import type { AiInsight, AnalyticsDaily, AnalyticsFilters, DateRange, FinanceTotals, FinanceTransaction, InventoryFilters, InventorySnapshot, OverviewData, Posting, PostingFilters, Product, ProductFilters, ProductPricePoint, RealizationDay, RealizationMonth, ReturnFilters, ReturnRecord, SyncRun, Warehouse } from '../types';
+import type { AiInsight, AlertSchedule, AnalyticsDaily, AnalyticsFilters, DateRange, FinanceTotals, FinanceTransaction, InventoryFilters, InventorySnapshot, OverviewData, Posting, PostingFilters, Product, ProductFilters, ProductPricePoint, RealizationDay, RealizationMonth, ReturnFilters, ReturnRecord, SyncRun, Warehouse } from '../types';
 
 const query = (params: Record<string, unknown>) => Object.entries(params).flatMap(([key, value]) => {
   if (value === undefined || value === null || value === '' || value === false) return [];
@@ -13,6 +13,16 @@ export class HttpErpDataSource implements ErpDataSource {
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.error || `API xətası: ${response.status}`);
     return body as T;
+  }
+  private async write<T>(path: string, method: 'PUT' | 'POST', body: unknown): Promise<T> {
+    const response = await fetch(`${ERP_API_BASE_URL}${path}`, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || `API xətası: ${response.status}`);
+    return result as T;
   }
   getOverview(range: DateRange) { return this.get<OverviewData>('/overview', range as unknown as Record<string, unknown>); }
   getProducts(filters: ProductFilters) {
@@ -31,6 +41,7 @@ export class HttpErpDataSource implements ErpDataSource {
   getPostings(filters: PostingFilters) { return this.get<Paginated<Posting>>('/postings', { ...filters, ...(filters.range || {}) }); }
   getPosting(postingNumber: string) { return this.get<Posting | null>(`/postings/${encodeURIComponent(postingNumber)}`); }
   getReturns(filters: ReturnFilters) { return this.get<Paginated<ReturnRecord>>('/returns', { ...filters, ...(filters.range || {}) }); }
+  getReturn(returnId: string) { return this.get<ReturnRecord | null>(`/returns/${encodeURIComponent(returnId)}`); }
   getAnalytics(filters: AnalyticsFilters) { return this.get<AnalyticsDaily[]>('/analytics', { ...filters, ...(filters.range || {}) }); }
   getFinanceTransactions(range: DateRange) { return this.get<FinanceTransaction[]>('/finance/transactions', range as unknown as Record<string, unknown>); }
   getRawRealization(range: DateRange) { return this.get<OzonRealizationRow[]>('/finance/realization/raw', range as unknown as Record<string, unknown>); }
@@ -40,4 +51,7 @@ export class HttpErpDataSource implements ErpDataSource {
   getSyncRuns() { return this.get<SyncRun[]>('/sync/runs'); }
   async syncNow() { const response = await fetch(`${ERP_API_BASE_URL}/sync`, { method: 'POST' }); const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || `API xətası: ${response.status}`); return body as { ok: boolean }; }
   getAiInsight(queryText: string, range: DateRange) { return this.get<AiInsight>('/ai/ask', { query: queryText, ...range }); }
+  getAlertSchedule() { return this.get<AlertSchedule>('/alerts/schedule'); }
+  saveAlertSchedule(schedule: AlertSchedule) { return this.write<AlertSchedule>('/alerts/schedule', 'PUT', schedule); }
+  testAlertSchedule() { return this.write<{ sent: boolean; errors?: string[] }>('/alerts/schedule/test', 'POST', {}); }
 }

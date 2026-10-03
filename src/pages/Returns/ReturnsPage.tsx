@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, Select, DatePicker, Table, Tag, Drawer, Descriptions, Space, Input, Image } from 'antd';
 import { Link } from 'react-router-dom';
-import { Line, Column } from '@ant-design/charts';
+import { Line } from '@ant-design/charts';
 import { useDataSource } from '../../hooks/useDataSource';
 import { useAppState } from '../../hooks/useAppState';
 import { formatRub, formatPct } from '../../components/format';
@@ -74,6 +74,7 @@ export function ReturnsPage() {
       name: products?.items.find((p) => p.productId === productId)?.name ?? productId,
       count,
     }));
+  const maxReturnedCount = Math.max(...topReturned.map((item) => item.count), 1);
 
   return (
     <div>
@@ -82,7 +83,24 @@ export function ReturnsPage() {
           <Line data={trend} xField="date" yField="returnRatePct" height={240} />
         </Card>
         <Card size="small" title="Ən çox qaytarılan məhsullar" className="section-card">
-          <Column data={topReturned} xField="name" yField="count" height={240} axis={{ x: { labelAutoRotate: true } }} />
+          {topReturned.length === 0 ? (
+            <div className="returns-ranking-empty">Seçilmiş dövr üçün qaytarma yoxdur</div>
+          ) : (
+            <div className="returns-ranking">
+              {topReturned.map((item, index) => (
+                <div className="returns-ranking-row" key={item.name} title={item.name}>
+                  <div className="returns-ranking-meta">
+                    <span className="returns-ranking-rank">{index + 1}</span>
+                    <span className="returns-ranking-name">{item.name}</span>
+                    <strong>{item.count}</strong>
+                  </div>
+                  <div className="returns-ranking-track">
+                    <div className="returns-ranking-fill" style={{ width: `${(item.count / maxReturnedCount) * 100}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </Card>
       </div>
 
@@ -139,15 +157,15 @@ export function ReturnsPage() {
             }}
             columns={[
               { title: 'Şəkil', dataIndex: 'imageUrl', width: 116, render: (url: string | undefined) => url ? <Image src={url} width={96} height={96} preview style={{ objectFit: 'cover', borderRadius: 8 }} /> : '📦' },
-              { title: 'ID', dataIndex: 'returnId' },
+              { title: 'ID', dataIndex: 'returnId', render: (v: string) => <Link to={`/returns/${v}`} onClick={(e) => e.stopPropagation()}>{v}</Link> },
               {
-                title: 'Posting',
+                title: 'Əlaqəli posting',
                 dataIndex: 'postingNumber',
                 render: (v: string) => <Link to={`/orders/${v}`} onClick={(e) => e.stopPropagation()}>{v}</Link>,
               },
               { title: 'SKU', dataIndex: 'sku' },
               { title: 'Tip', dataIndex: 'type', render: (v: string) => <Tag>{v}</Tag> },
-              { title: 'Səbəb', dataIndex: 'reason', render: (v: ReturnReason) => REASON_LABEL[v] },
+              { title: 'Səbəb', dataIndex: 'reasonName', render: (v: string | null, r: ReturnRecord) => v || REASON_LABEL[r.reason] },
               {
                 title: 'Status',
                 dataIndex: 'status',

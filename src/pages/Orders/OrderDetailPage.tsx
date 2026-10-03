@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Card, Descriptions, Table, Tag, Space, Skeleton, Result, Steps, Alert, Image } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
@@ -58,6 +58,21 @@ export function OrderDetailPage() {
 
       {posting.status === 'cancelled' && (
         <Alert type="error" showIcon message="Bu sifariş ləğv edilib" style={{ marginBottom: 12 }} />
+      )}
+
+      {posting.isReturnFallback && (
+        <Alert
+          type="info"
+          showIcon
+          message="Bu posting qaytarma qeydindən bərpa edildi"
+          description={(
+            <span>
+              Ozon posting siyahısında artıq görünmür. Qaytarma ID-si: <Link to={`/returns/${posting.returnId}`}>{posting.returnId}</Link>
+              {posting.returnReason ? ` · Səbəb: ${posting.returnReason}` : ''}
+            </span>
+          )}
+          style={{ marginBottom: 12 }}
+        />
       )}
 
       <Card size="small" className="section-card" title={`Posting ${posting.postingNumber}`}>

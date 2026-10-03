@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { Card, Input, Button, Space, Tag, Typography } from 'antd';
+import { Card, Input, Button, Space, Tag, Typography, Table } from 'antd';
 import { SendOutlined, RobotOutlined } from '@ant-design/icons';
+import { Column } from '@ant-design/charts';
 import { useAppState } from '../../hooks/useAppState';
 import { useDataSource } from '../../hooks/useDataSource';
 import type { AiInsight } from '../../types';
@@ -24,7 +25,7 @@ export function AiAnalystPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
-      text: 'Salam! Sualınızı yazın — cavablar seçilmiş tarix aralığındakı Ozon məlumatlarından hesablanır.',
+      text: 'Salam! Sualınızı yazın — Gemini yalnız backend vasitəsilə Ozon-dan gələn real məlumatları axtaracaq və uyğun cədvəl/diaqram göstərəcək.',
     },
   ]);
   const [input, setInput] = useState('');
@@ -40,9 +41,50 @@ export function AiAnalystPage() {
     setMessages((m) => [...m, { role: 'user', text: query }]);
     setInput('');
     setLoading(true);
-    const insight = await ds.getAiInsight(query, dateRange);
-    setMessages((m) => [...m, { role: 'assistant', text: insight.answer, insight }]);
+    try {
+      const insight = await ds.getAiInsight(query, dateRange);
+      setMessages((m) => [...m, { role: 'assistant', text: insight.answer, insight }]);
+    } catch (error) {
+      setMessages((m) => [...m, { role: 'assistant', text: error instanceof Error ? error.message : 'AI sorğusu icra olunmadı.' }]);
+    }
     setLoading(false);
+  };
+
+  const renderVisualization = (insight: AiInsight) => {
+    const visualization = insight.visualization;
+    if (!visualization || visualization.type === 'none') return null;
+    if (visualization.type === 'table') {
+      const dataSource = visualization.rows.map((row, rowIndex) => ({
+        key: rowIndex,
+        ...Object.fromEntries(row.map((value, index) => [`column${index}`, value])),
+      }));
+      return (
+        <Card size="small" title={visualization.title} style={{ marginTop: 12 }}>
+          <Table
+            size="small"
+            pagination={false}
+            scroll={{ x: true }}
+            dataSource={dataSource}
+            columns={visualization.columns.map((title, index) => ({ title, dataIndex: `column${index}`, key: `column${index}` }))}
+          />
+        </Card>
+      );
+    }
+    return (
+      <Card size="small" title={visualization.title} style={{ marginTop: 12 }}>
+        <Column
+          data={visualization.data}
+          xField="label"
+          yField="value"
+          colorField="series"
+          height={260}
+          axis={{
+            x: { title: visualization.xAxis },
+            y: { title: visualization.yAxis },
+          }}
+        />
+      </Card>
+    );
   };
 
   return (
@@ -50,7 +92,7 @@ export function AiAnalystPage() {
       <Card size="small" className="section-card">
         <Space wrap>
           <span className="muted">
-            Cavablar lokal backend-də saxlanılan son Ozon sinxronizasiyası və seçilmiş tarix aralığı əsasında hesablanır.
+            Gemini backend-də icazəli funksiyalarla yalnız son Ozon sinxronizasiyasından gələn real məlumatları axtarır.
           </span>
         </Space>
       </Card>
@@ -79,10 +121,13 @@ export function AiAnalystPage() {
               )}
               <Typography.Paragraph style={{ marginBottom: m.insight ? 8 : 0 }}>{m.text}</Typography.Paragraph>
               {m.insight && (
+                <>
                 <Space size={4} wrap>
                   <Tag>Metod: {m.insight.method}</Tag>
                   <Tag>Dövr: {m.insight.rangeStart} — {m.insight.rangeEnd}</Tag>
                 </Space>
+                {renderVisualization(m.insight)}
+                </>
               )}
             </div>
           ))}

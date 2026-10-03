@@ -74,6 +74,10 @@ export interface Posting {
   items: PostingItem[];
   orderedUnits: number; // = sum(items.quantity) — sifariş edilmiş vahid, satış deyil
   amount: number; // sifariş məbləği
+  isReturnFallback?: boolean;
+  returnId?: string;
+  returnReason?: string | null;
+  returnStatus?: string | null;
 }
 
 export type ReturnReason =
@@ -89,13 +93,32 @@ export interface ReturnRecord {
   returnId: string;
   postingNumber: string;
   productId: string;
+  productName?: string;
+  productOfferId?: string;
   sku: string;
   type: FulfilmentType;
+  returnType?: string;
   reason: ReturnReason;
+  reasonName?: string | null;
   status: ReturnStatus;
+  visualStatus?: string | null;
   amount: number;
+  productPrice?: number;
+  quantity?: number;
+  currency?: string;
   createdAt: string; // ISO
+  returnDate?: string | null;
+  finalMoment?: string | null;
+  technicalReturnMoment?: string | null;
+  orderId?: string;
+  orderNumber?: string;
+  place?: { id?: number; name?: string; address?: string } | null;
+  targetPlace?: { id?: number; name?: string; address?: string } | null;
+  storageDays?: number;
+  barcode?: string;
+  compensationStatus?: string | null;
   imageUrl?: string;
+  source?: Record<string, unknown>;
 }
 
 export type FinanceTransactionType =
@@ -206,9 +229,31 @@ export interface EmailSubscription {
   active: boolean;
 }
 
+export interface AlertSchedule {
+  active: boolean;
+  email: string;
+  telegram: string;
+  hour: number;
+  minute: number;
+  timezone: string;
+  prompt: string;
+  includeAiSummary: boolean;
+  metrics: Array<'sales' | 'stock' | 'returns' | 'alerts'>;
+  lastSentDate: string | null;
+}
+
 export interface AiInsight {
   query: string;
   answer: string;
+  visualization?: {
+    type: 'none' | 'table' | 'line' | 'bar' | 'histogram';
+    title: string;
+    xAxis: string;
+    yAxis: string;
+    data: Array<{ label: string; value: number; series: string }>;
+    columns: string[];
+    rows: string[][];
+  };
   method: string; // hansı hesablama metodundan istifadə olundu
   rangeStart: string;
   rangeEnd: string;
